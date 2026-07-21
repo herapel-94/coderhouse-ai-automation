@@ -1,0 +1,182 @@
+{
+  "name": "Checkpoint 1 - Agente Base",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "24ca2fe0-6ebd-431d-a7be-9c03cb75bebf",
+      "name": "When chat message received",
+      "webhookId": "00344065-1b25-4fb1-a62f-53088cc30cb6",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "ROL\nSos un Asistente de Atención al Cliente de 94SC.\n\nÁMBITO\nRespondés consultas relacionadas con productos, talles, stock, envíos y políticas de cambios.\n\nOBJETIVO\nBrindar respuestas claras, precisas y útiles utilizando únicamente la información disponible en las herramientas conectadas.\n\nREGLAS\n- Respondé de forma profesional y concisa.\n- Si la información no está disponible, indicá que no podés confirmarla.\n- Utilizá las herramientas únicamente cuando sean necesarias para responder.\n- No inventes información.\n- No realices acciones fuera de tu alcance.\n\nESCALAMIENTO\nSi la consulta no puede resolverse con la información disponible, indicá que debe ser revisada por un operador humano.",
+          "maxIterations": 8
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "44ba7093-69cb-4d30-84f6-b96e450e8623",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "c2bd124a-b6fd-4c73-a3c3-d10ebc2004cb",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "3YIkLJEL87deajF5",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Utiliza esta herramienta únicamente cuando el usuario haga una consulta relacionada con preguntas frecuentes, políticas de cambios, medios de pago, envíos, stock o cualquier información almacenada en Google Sheets. Antes de responder, consultá esta herramienta para obtener información actualizada. Si la información no existe o no puede encontrarse, no inventes una respuesta e indicá que la consulta debe ser revisada por un operador humano.",
+        "documentId": {
+          "__rl": true,
+          "value": "1oGQzCkloy5NKgTxVH214oTKFRdvcBmb1S_0QFRghHX4",
+          "mode": "list",
+          "cachedResultName": "FAQ_94SC",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1oGQzCkloy5NKgTxVH214oTKFRdvcBmb1S_0QFRghHX4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1oGQzCkloy5NKgTxVH214oTKFRdvcBmb1S_0QFRghHX4/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Pregunta",
+              "lookupValue": "={{ $json.chatInput }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        208
+      ],
+      "id": "f76539aa-d197-4088-90f2-6d3c27e86d7d",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "JreK6yDbCLo0Ewwn",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "her.apel@gmail.com",
+        "subject": "Execution Log - Checkpoint 1",
+        "message": "=Resultado del AI Agent: {{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "811656f2-d003-44b7-8636-f9b472a0fd18",
+      "name": "Send a message",
+      "webhookId": "3d9df881-c6b9-4bbb-bf09-7333dd03b32b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "rYXFUpo6GpxnSNlP",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "572ff480-dd79-49d5-a9ad-228e0df470be",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c7c29adfce5aa68559848c560d39c9b4ca91e387eed2ec3ea1ce82a6cbd19bc2"
+  },
+  "nodeGroups": [],
+  "id": "fPiM5sS8jJG3iuJC",
+  "tags": []
+}
